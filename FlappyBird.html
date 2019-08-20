@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            * {
+                padding: 0; margin: 0;
+            }
+            canvas {
+                background: #3e3e3e; display: block; margin: 0 auto;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="game" width="480" height="320"></canvas>
+    </body>
+    <script>
+        var canvas = document.getElementById("game");
+        var ctx = canvas.getContext("2d");
+
+        function bird() {
+            this.x = 100;
+            this.y = canvas.height/2;
+            this.jump = 20;
+            this.gravity = 3;
+            this.scale = 20;
+
+            this.draw = function() {
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(this.x, this.y, this.scale, this.scale);
+            }
+
+            this.update = function() {
+
+                this.y += this.gravity;
+
+                if (this.y > canvas.height || this.y < 0) {
+                    gameover()
+                }
+            }
+
+            this.direction = function (key) {
+                switch(key) {
+                    case "Space":
+                        this.y -= this.jump;
+                        break;
+                }
+            }
+
+            this.collider = function(block) {
+                if ((this.x > block.x && this.x < block.x + 16) && ((this.y >= block.uy && this.y <= block.height[0]) || (this.y >= block.height[0] + 60 && this.y <= canvas.height))) {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        function block() {
+            this.width = 20;
+            this.height = [];
+            this.height[0] = generateRandom(20,140);
+            this.height[1] = canvas.height - this.height[0] - 60;
+
+            this.x = 480;
+            this.y = []
+            this.y[0] = 0;
+            this.y[1] = canvas.height - this.height[1];
+            this.velocity = 8;
+
+            this.score = 0;
+
+            this.draw = function() {
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(this.x, this.y[0], this.width, this.height[0]);
+
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(this.x, this.y[1], this.width, this.height[1]);
+
+                
+            }
+
+            this.update = function() {
+                this.x -= this.velocity;
+
+                if(this.x == 0) {
+                    this.x =  480;
+                    this.height[0] = generateRandom(20,140);
+                    this.height[1] = canvas.height - this.height[0] - 60;
+                    this.y[1] = canvas.height - this.height[1];
+                    this.score++;
+                }
+            }
+        }
+
+        function generateRandom(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function updateScore(block) {
+            ctx.font = '48px Consolas';
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText(block.score, 10, 50);
+        }
+
+        function gameover() {
+            location.reload();
+        }
+
+        (function setup() {
+            bird = new bird();
+            block = new block();
+
+            window.setInterval(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                bird.update();
+                block.update();
+
+                bird.draw();
+                block.draw();
+
+                updateScore(block);
+
+                if(bird.collider(block)) {
+                    gameover();
+                }
+                
+            }, 50);
+        }());
+
+        window.addEventListener("keydown", ((evt) => {
+            const direction = evt.code.replace("Arrow", "");
+            bird.direction(direction);
+        }))
+    </script>
+</html>
